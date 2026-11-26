@@ -1,4 +1,4 @@
-# Sawit Strike — Penjaga Kebun 🌴🎯
+# Sawit Strike — Penjaga Kebun
 
 Game **VR berbasis web** (A-Frame 1.8 + React + Vite) bertema **FPS shooter di kebun kelapa sawit**.
 Pemain berperan sebagai penjaga kebun Blok A-12 yang harus membasmi hama sawit
