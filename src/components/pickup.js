@@ -1,8 +1,4 @@
-/**
- * pickup — Tandan Buah Segar (TBS) sawit yang dijatuhkan hama.
- * Ambil dengan berjalan mendekat ATAU menembaknya (untuk pemain tanpa gamepad).
- * Efek: HP +20 dan skor +50. Hilang setelah 15 detik (berkedip di 3 detik terakhir).
- */
+// pickup: TBS dari hama. HP +20, skor +50, hilang setelah 15 detik.
 import { mergeGeometries, paint, seededRandom } from '../utils/helpers.js';
 
 const THREE = AFRAME.THREE;

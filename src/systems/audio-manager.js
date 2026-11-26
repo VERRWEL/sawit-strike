@@ -1,16 +1,7 @@
-/**
- * audio-manager — semua SFX & BGM disintesis langsung dengan Web Audio API
- * (oscillator + noise + filter), jadi tidak ada file audio yang diunduh.
- *
- * Fitur:
- *  - Spatial audio (PannerNode HRTF): suara hama terdengar dari arahnya,
- *    posisi & orientasi "telinga" (listener) mengikuti kamera tiap frame.
- *  - BGM prosedural bernuansa gamelan (tangga nada pentatonis) dengan
- *    sequencer look-ahead; mode 'menu' (tenang) dan 'game' (dengan perkusi).
- */
+// audio-manager: SFX & BGM disintesis pakai Web Audio API, tanpa file audio.
 const THREE = AFRAME.THREE;
 
-const SCALE = [0, 3, 5, 7, 10]; // pentatonis minor (mirip pelog/slendro sederhana)
+const SCALE = [0, 3, 5, 7, 10]; // pentatonis minor
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
 AFRAME.registerSystem('audio-manager', {
@@ -23,7 +14,7 @@ AFRAME.registerSystem('audio-manager', {
     this._up = new THREE.Vector3();
     this._pos = new THREE.Vector3();
     this._q = new THREE.Quaternion();
-    // AudioContext hanya boleh dibuat/dijalankan setelah interaksi pengguna
+    // AudioContext butuh interaksi user dulu
     const unlock = () => this.unlock();
     ['pointerdown', 'keydown', 'touchend'].forEach((ev) => window.addEventListener(ev, unlock, { passive: true }));
   },
@@ -43,7 +34,7 @@ AFRAME.registerSystem('audio-manager', {
       this.music = ctx.createGain();
       this.music.gain.value = 0.22;
       this.music.connect(this.master);
-      // buffer white noise 1 detik untuk tembakan, perkusi, dsb.
+      // buffer white noise 1 detik
       const len = ctx.sampleRate;
       this.noise = ctx.createBuffer(1, len, ctx.sampleRate);
       const d = this.noise.getChannelData(0);
@@ -60,7 +51,7 @@ AFRAME.registerSystem('audio-manager', {
     return this.muted;
   },
 
-  /** Sinkronkan listener dengan kamera (posisi + arah pandang). */
+  // listener ikut kamera
   tick() {
     if (!this.ctx || !this.el.camera) return;
     const cam = this.el.camera;
@@ -86,7 +77,7 @@ AFRAME.registerSystem('audio-manager', {
     }
   },
 
-  /* ---------- Util node ---------- */
+  // util node
 
   _panner(position) {
     const p = this.ctx.createPanner();
@@ -129,9 +120,7 @@ AFRAME.registerSystem('audio-manager', {
     return s;
   },
 
-  /**
-   * Mainkan SFX. opts.position (Vector3) -> suara 3D di posisi tersebut.
-   */
+  // opts.position -> suara 3D
   play(name, opts = {}) {
     if (!this.ctx || this.ctx.state !== 'running') return;
     const ctx = this.ctx;
@@ -144,7 +133,7 @@ AFRAME.registerSystem('audio-manager', {
     if (fn) fn.call(this, ctx, g, t, v, opts);
   },
 
-  /** Suara berulang terus (dengung kumbang) yang posisinya bisa digeser. */
+  // suara loop (dengung kumbang)
   startLoop(name, position) {
     if (!this.ctx || this.ctx.state !== 'running') return null;
     const ctx = this.ctx;
@@ -192,7 +181,7 @@ AFRAME.registerSystem('audio-manager', {
     [...this.loops].forEach((h) => h.stop());
   },
 
-  /* ---------- BGM prosedural ---------- */
+  // BGM
 
   setMusic(mode) {
     this.musicMode = mode;
@@ -217,7 +206,7 @@ AFRAME.registerSystem('audio-manager', {
   },
 
   _newMelody() {
-    // pola "saron" pendek yang diulang, berganti tiap 4 bar
+    // pola saron, ganti tiap 4 bar
     this.melody = [];
     let idx = 2;
     for (let i = 0; i < 16; i++) {
@@ -241,7 +230,7 @@ AFRAME.registerSystem('audio-manager', {
     const ctx = this.ctx;
     const dest = this.music;
 
-    // Bonang/saron: lonceng logam (sinus + parsial inharmonis)
+    // bonang/saron
     const mi = this.melody[step % 16];
     const playBell = mode === 'game' ? s16 % 2 === 0 : s16 % 4 === 0;
     if (mi >= 0 && playBell) {
@@ -256,7 +245,7 @@ AFRAME.registerSystem('audio-manager', {
       this._osc('sine', f * 2.76, t, 0.4, g2);
     }
 
-    // Gong setiap 4 bar
+    // gong tiap 4 bar
     if (step === 0) {
       const g = ctx.createGain();
       g.connect(dest);
@@ -268,7 +257,7 @@ AFRAME.registerSystem('audio-manager', {
 
     if (mode !== 'game') return;
 
-    // Bass (triangle)
+    // bass
     if ([0, 3, 6, 10, 12].includes(s16)) {
       const g = ctx.createGain();
       g.connect(dest);
@@ -276,7 +265,7 @@ AFRAME.registerSystem('audio-manager', {
       const idx = this.bassRoot + (s16 === 6 ? 2 : s16 === 12 ? 1 : 0);
       this._osc('triangle', this._note(idx, 38), t, 0.3, g);
     }
-    // Kick (kendang rendah)
+    // kick
     if (s16 === 0 || s16 === 8 || s16 === 11) {
       const g = ctx.createGain();
       g.connect(dest);
@@ -284,7 +273,7 @@ AFRAME.registerSystem('audio-manager', {
       const o = this._osc('sine', 140, t, 0.2, g);
       o.frequency.exponentialRampToValueAtTime(45, t + 0.15);
     }
-    // Snare/tepak (noise bandpass)
+    // snare
     if (s16 === 4 || s16 === 12) {
       const f = ctx.createBiquadFilter();
       f.type = 'bandpass';
@@ -294,7 +283,7 @@ AFRAME.registerSystem('audio-manager', {
       this._env(g, t, 0.002, 0.35, 0.12);
       this._noise(t, 0.15, f);
     }
-    // Hi-hat
+    // hi-hat
     if (s16 % 2 === 1) {
       const f = ctx.createBiquadFilter();
       f.type = 'highpass';
@@ -307,10 +296,10 @@ AFRAME.registerSystem('audio-manager', {
   }
 });
 
-/* ---------- Resep SFX (this = sistem audio) ---------- */
+// resep SFX (this = sistem audio)
 const SFX = {
   shoot(ctx, g, t, v) {
-    // dentuman senapan angin: noise berfilter + sinus jatuh
+    // tembakan
     const f = ctx.createBiquadFilter();
     f.type = 'lowpass';
     f.frequency.setValueAtTime(4000, t);

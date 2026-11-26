@@ -1,11 +1,4 @@
-/**
- * enemy — perilaku hama kebun sawit (entity-behavior).
- *  tikus   : cepat, berlari zig-zag di tanah, menggigit kaki.
- *  kumbang : kumbang tanduk (Oryctes rhinoceros) terbang naik-turun ke arah kepala,
- *            mengeluarkan dengung 3D terus-menerus.
- *  babi    : babi hutan, lambat tapi tebal; saat dekat ia ancang-ancang lalu menyeruduk.
- * Model 3D dibuat dari primitif Three.js (low-poly, buatan sendiri).
- */
+// enemy: perilaku hama (tikus, kumbang, babi hutan).
 import { ENEMY_TYPES } from '../systems/game-manager.js';
 import { CanvasPanel } from '../utils/helpers.js';
 import { blobShadowTexture } from '../utils/textures.js';
@@ -18,7 +11,7 @@ function lambert(color, extra = {}) {
   return new THREE.MeshLambertMaterial({ color, ...extra });
 }
 
-/* ---------- Model ---------- */
+// model
 
 function buildRat(mats) {
   const g = new THREE.Group();
@@ -139,7 +132,7 @@ function buildBoar(mats) {
   return g;
 }
 
-/* ---------- Komponen ---------- */
+// komponen
 
 AFRAME.registerComponent('enemy', {
   schema: {
@@ -176,7 +169,7 @@ AFRAME.registerComponent('enemy', {
     this.model = model;
     this.el.setObject3D('mesh', model);
 
-    // hitbox (bola tak terlihat) untuk raycast peluru
+    // hitbox raycast
     const r = this.info.radius;
     this.hitbox = new THREE.Mesh(G('hit' + r, () => new THREE.SphereGeometry(r, 8, 6)), new THREE.MeshBasicMaterial({ visible: false }));
     this.hitbox.position.y = type === 'babi' ? 0.8 : type === 'tikus' ? 0.4 : 0;
@@ -194,7 +187,7 @@ AFRAME.registerComponent('enemy', {
       this.el.object3D.position.y = 2.5 + Math.random() * 2;
     }
 
-    // bar HP untuk hama yang butuh >1 tembakan
+    // bar HP
     if (this.info.hp > 1) {
       this.hpBar = new CanvasPanel(0.8, 0.1, 128, { renderOrder: 5 });
       this.hpBar.mesh.position.y = type === 'babi' ? 1.75 : 0.65;
@@ -225,7 +218,7 @@ AFRAME.registerComponent('enemy', {
     });
   },
 
-  /** Dipanggil oleh action-handler saat peluru mengenai hitbox. */
+  // dipanggil action-handler saat kena tembak
   takeDamage(amount, point, dir) {
     if (this.dead) return;
     this.hp -= amount;
@@ -308,7 +301,7 @@ AFRAME.registerComponent('enemy', {
       const targetY = dist < 6 ? camY - 0.25 : 2.6 + Math.sin(this.age * 1.7 + this.phase) * 1.0;
       o.position.y += (targetY - o.position.y) * Math.min(1, dt * 2);
       if (dist < 2.0) {
-        // melayang di depan wajah (tidak menembus kamera), sambil mengitari
+        // melayang di depan wajah sambil mengitari
         const push = dist < 1.5 ? -2.5 : 0;
         vx = -nz * 1.5 + nx * push;
         vz = nx * 1.5 + nz * push;
@@ -333,7 +326,7 @@ AFRAME.registerComponent('enemy', {
           if (this.audio) this.audio.play('grunt', { position: o.position });
         }
       } else if (this.mode === 'windup') {
-        // gosok kaki, bersiap menyeruduk
+        // ancang-ancang
         this.model.rotation.x = -0.12 + Math.sin(this.age * 30) * 0.05;
         if (this.modeTimer <= 0) {
           this.mode = 'charge';
@@ -370,7 +363,7 @@ AFRAME.registerComponent('enemy', {
     o.position.x += (vx + this.knock.x) * dt;
     o.position.z += (vz + this.knock.z) * dt;
     this.knock.multiplyScalar(Math.max(0, 1 - dt * 6));
-    // hama darat tidak menembus batang sawit (bergeser di sekitarnya)
+    // hindari batang sawit
     if (type !== 'kumbang' && this.gm.plantation) this.gm.plantation.resolveCollision(o.position, type === 'babi' ? 0.6 : 0.3);
 
     // hadap arah gerak (model menghadap +Z)

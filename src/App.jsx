@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 
-/**
- * App — merender <a-scene> sekali saja + overlay HTML untuk tombol di luar VR.
- * React TIDAK dipakai untuk logika 60 fps (polling gamepad, gerak, tembak);
- * semua itu ada di komponen/sistem A-Frame (lihat folder src/components & src/systems).
- */
+// Scene A-Frame dirender sekali, logika game ada di components/systems.
 const scene = () => document.querySelector('a-scene');
 
 export default function App() {
@@ -76,7 +72,7 @@ export default function App() {
               </div>
             </div>
             <div className={'pad ' + (pad ? 'on' : '')}>
-              🎮 {pad ? 'Gamepad terhubung' : 'Gamepad belum terhubung — tekan tombol apa saja di controller'}
+              🎮 {pad ? 'Gamepad terhubung' : 'Gamepad belum terhubung, tekan tombol apa saja di controller'}
             </div>
             {!window.isSecureContext && (
               <div className="warn">⚠ Buka lewat HTTPS agar gyroscope HP bisa dipakai.</div>
@@ -115,8 +111,7 @@ export default function App() {
         loading-screen="dotsColor: #f4a300; backgroundColor: #16301a"
         device-orientation-permission-ui="enabled: true"
       >
-        {/* Semua aset dibuat prosedural di kode (tekstur canvas, model primitif, audio Web Audio),
-            jadi <a-assets> tidak perlu memuat file eksternal. */}
+        {/* aset dibuat prosedural, tidak ada file eksternal */}
         <a-assets></a-assets>
 
         <a-entity plantation=""></a-entity>
@@ -124,7 +119,7 @@ export default function App() {
         <a-entity light="type: hemisphere; color: #e8f2ff; groundColor: #6b5434; intensity: 2.2"></a-entity>
         <a-entity light="type: directional; color: #ffe9c4; intensity: 2.4" position="-4 8 -5"></a-entity>
 
-        {/* Camera rig: rig digeser stik kiri, kamera di dalamnya diputar gyroscope */}
+        {/* rig digerakkan stik kiri, kamera diputar gyro */}
         <a-entity id="player-rig" gamepad-mover="" position="0 0 0">
           <a-entity
             id="camera"

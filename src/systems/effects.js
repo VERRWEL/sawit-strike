@@ -1,9 +1,4 @@
-/**
- * effects — efek visual ringan dengan object pooling:
- *  - burst partikel saat hama mati / peluru kena,
- *  - garis lintasan peluru (tracer),
- *  - teks skor melayang (+100).
- */
+// effects: partikel, tracer, teks skor (pakai pooling).
 import { CanvasPanel, UI_FONT } from '../utils/helpers.js';
 
 const THREE = AFRAME.THREE;

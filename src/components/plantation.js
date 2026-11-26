@@ -1,19 +1,12 @@
-/**
- * plantation — membangun lingkungan kebun sawit secara prosedural:
- *  - pohon kelapa sawit (batang, pelepah, tajuk, tandan buah) memakai InstancedMesh
- *    sehingga ±150 pohon hanya butuh 3 draw call (penting untuk GPU HP),
- *  - pola tanam segitiga (mata lima) seperti kebun sawit sungguhan,
- *  - tanah, langit, tumpukan pelepah di gawangan, rumput, pondok & papan nama.
- * Posisi batang disimpan di this.colliders untuk tabrakan pemain.
- */
+// plantation: kebun sawit prosedural. Pohon pakai InstancedMesh biar hemat draw call.
 import { seededRandom, mergeGeometries, paint, CanvasPanel, UI_FONT } from '../utils/helpers.js';
 import { leafletTexture, trunkTexture, groundTexture, skyTexture } from '../utils/textures.js';
 
 const THREE = AFRAME.THREE;
 
-/* ---------- Geometri satu pohon sawit ---------- */
+// geometri pohon
 
-/** Satu pelepah melengkung berbentuk pita dengan lipatan V. */
+// satu pelepah
 function buildFrond(angle, elevation, length, droop, color, rng) {
   const seg = 7;
   const W = 0.95 * (length / 4.8);
@@ -80,7 +73,7 @@ function buildCrown(rng) {
     let color = greens[i % greens.length];
     const len = 4.2 + rng() * 1.2;
     if (i >= N - 4) {
-      // pelepah tua/kering yang menggantung
+      // pelepah kering
       elev = -0.55 - rng() * 0.3;
       droop = 0.35;
       color = rng() < 0.5 ? '#8a6d34' : '#9b8a45';
@@ -90,13 +83,13 @@ function buildCrown(rng) {
   return mergeGeometries(fronds);
 }
 
-/** Tajuk/pangkal pelepah + tandan buah segar (TBS) yang menempel di batang. */
+// pangkal pelepah + tandan buah
 function buildFruitAndHead(rng) {
   const parts = [];
   const head = new THREE.IcosahedronGeometry(0.62, 1);
   head.scale(1, 0.85, 1);
   parts.push(paint(head, '#4a5a25', 0.25, rng));
-  // pangkal-pangkal pelepah (seperti sisik)
+  // pangkal pelepah
   for (let i = 0; i < 9; i++) {
     const a = (i / 9) * Math.PI * 2;
     const g = new THREE.ConeGeometry(0.16, 0.7, 4);
@@ -130,7 +123,7 @@ function buildTrunk() {
   return g;
 }
 
-/* ---------- Komponen ---------- */
+// komponen
 
 AFRAME.registerComponent('plantation', {
   schema: {
@@ -150,7 +143,7 @@ AFRAME.registerComponent('plantation', {
     this.buildGround(root, rng);
     this.buildPalms(root, rng);
     this.buildCamp(root, rng);
-    // simpan referensi di game-manager agar bisa diakses komponen lain
+    // simpan ke game-manager
     this.el.sceneEl.systems['game-manager'].plantation = this;
   },
 
@@ -179,7 +172,7 @@ AFRAME.registerComponent('plantation', {
     ground.rotation.x = -Math.PI / 2;
     root.add(ground);
 
-    // rumput & pakis kecil (instanced)
+    // rumput (instanced)
     const tuft = new THREE.ConeGeometry(0.18, 0.45, 5);
     tuft.translate(0, 0.22, 0);
     const tuftMat = new THREE.MeshLambertMaterial({ color: '#5f8f34' });
@@ -243,7 +236,7 @@ AFRAME.registerComponent('plantation', {
     const Y = new THREE.Vector3(0, 1, 0);
     const tint = new THREE.Color();
     positions.forEach((t, i) => {
-      const h = 3.2 + rng() * 3.4; // tinggi batang 3–6.6 m (sawit usia produktif)
+      const h = 3.2 + rng() * 3.4; // tinggi 3-6.6 m
       const r = 0.9 + rng() * 0.25;
       const rot = rng() * Math.PI * 2;
       q.setFromAxisAngle(Y, rot);
@@ -262,7 +255,7 @@ AFRAME.registerComponent('plantation', {
       root.add(im);
     });
 
-    // tumpukan pelepah di gawangan (antar baris) — khas kebun sawit
+    // tumpukan pelepah antar baris
     const stackGeo = new THREE.BoxGeometry(1.1, 0.3, spacing * 0.7);
     stackGeo.translate(0, 0.15, 0);
     const stackMat = new THREE.MeshLambertMaterial({ color: '#7d6a3a' });
@@ -281,7 +274,7 @@ AFRAME.registerComponent('plantation', {
     root.add(stacks);
   },
 
-  /** Pondok jaga + tumpukan TBS + papan nama blok di tengah lahan terbuka. */
+  // pondok, tumpukan TBS, papan nama
   buildCamp(root, rng) {
     const camp = new THREE.Group();
     camp.position.set(4.5, 0, 3.5);
@@ -303,7 +296,7 @@ AFRAME.registerComponent('plantation', {
     root.add(camp);
     this.colliders.push({ x: 4.5, z: 3.5, r: 1.9 });
 
-    // tumpukan TBS hasil panen
+    // tumpukan TBS
     const pile = new THREE.Group();
     pile.position.set(-4.2, 0, 2.6);
     const fruitMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
@@ -320,7 +313,7 @@ AFRAME.registerComponent('plantation', {
     root.add(pile);
     this.colliders.push({ x: -4.2, z: 2.6, r: 1.1 });
 
-    // papan nama blok kebun
+    // papan nama
     const sign = new THREE.Group();
     sign.position.set(-2.8, 0, -6.2);
     sign.rotation.y = 0.35;
@@ -348,7 +341,7 @@ AFRAME.registerComponent('plantation', {
     root.add(sign);
   },
 
-  /** Dorong posisi (x,z) keluar dari batang pohon terdekat. */
+  // dorong (x,z) keluar dari batang terdekat
   resolveCollision(pos, radius = 0.35) {
     for (const c of this.colliders) {
       const dx = pos.x - c.x;

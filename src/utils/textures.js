@@ -1,7 +1,4 @@
-/**
- * Tekstur prosedural (dibuat sendiri dengan Canvas 2D) — tidak ada file gambar
- * yang diunduh. Dicatat sebagai aset "buatan sendiri" di Material Collecting.
- */
+// tekstur prosedural pakai Canvas 2D
 import { seededRandom } from './helpers.js';
 
 const THREE = AFRAME.THREE;
@@ -23,7 +20,7 @@ function toTexture(c, repeatX = 1, repeatY = 1) {
   return t;
 }
 
-/** Daun pelepah sawit: tulang daun di tengah + anak daun diagonal (pakai alpha). */
+// daun pelepah
 export function leafletTexture() {
   if (cache.leaf) return cache.leaf;
   const rng = seededRandom(7);
@@ -55,7 +52,7 @@ export function leafletTexture() {
   return cache.leaf;
 }
 
-/** Batang sawit: pola bekas pangkal pelepah (berbentuk wajik). */
+// batang sawit
 export function trunkTexture() {
   if (cache.trunk) return cache.trunk;
   const rng = seededRandom(11);
@@ -84,7 +81,7 @@ export function trunkTexture() {
       g.lineWidth = 3;
       g.stroke();
       if (rng() < 0.3) {
-        // lumut / pakis kecil yang menempel di batang
+        // lumut
         g.fillStyle = `rgba(70,${110 + rng() * 50},40,0.8)`;
         g.beginPath();
         g.arc(x + (rng() - 0.5) * 10, y, 3 + rng() * 5, 0, Math.PI * 2);
@@ -96,7 +93,7 @@ export function trunkTexture() {
   return cache.trunk;
 }
 
-/** Tanah kebun: tanah merah-cokelat + bercak rumput. */
+// tanah
 export function groundTexture() {
   if (cache.ground) return cache.ground;
   const rng = seededRandom(23);
@@ -124,7 +121,7 @@ export function groundTexture() {
   return cache.ground;
 }
 
-/** Langit sore tropis (gradien vertikal). Warna horizon disamakan dengan fog. */
+// langit, horizon = warna fog
 export const HORIZON_COLOR = '#d8d2a8';
 export function skyTexture() {
   if (cache.sky) return cache.sky;
@@ -143,7 +140,7 @@ export function skyTexture() {
   return cache.sky;
 }
 
-/** Vinyet merah saat pemain terkena serangan. */
+// vinyet merah saat kena serang
 export function vignetteTexture() {
   if (cache.vig) return cache.vig;
   const c = canvas(256, 256);
@@ -158,7 +155,7 @@ export function vignetteTexture() {
   return cache.vig;
 }
 
-/** Kilatan moncong senapan (sprite bintang). */
+// muzzle flash
 export function flashTexture() {
   if (cache.flash) return cache.flash;
   const c = canvas(128, 128);
@@ -184,7 +181,7 @@ export function flashTexture() {
   return cache.flash;
 }
 
-/** Bayangan bulat palsu di bawah musuh (lebih murah dari shadow map). */
+// bayangan palsu
 export function blobShadowTexture() {
   if (cache.blob) return cache.blob;
   const c = canvas(64, 64);

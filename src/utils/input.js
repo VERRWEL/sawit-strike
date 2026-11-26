@@ -1,13 +1,6 @@
-/**
- * Input terpadu: Gamepad PlayStation (HTML5 Gamepad API), keyboard, mouse, dan tap layar.
- * poll() dipanggil dari tick() komponen; aman dipanggil berkali-kali dalam satu frame.
- *
- * Mapping "standard" Gamepad API untuk DualShock 4 / DualSense:
- *   0 = X (Cross)   1 = O (Circle) -> TIDAK DIPAKAI (di Android = tombol Back)
- *   2 = Kotak       3 = Segitiga   4 = L1   5 = R1   6 = L2   7 = R2
- *   8 = Share/Create 9 = Options   10 = L3  11 = R3  12–15 = D-pad
- *   axes: 0/1 = stik kiri (x/y), 2/3 = stik kanan (x/y)
- */
+// Input gamepad, keyboard, mouse, dan tap.
+// Mapping standard: 0=X 1=O(tidak dipakai) 2=Kotak 3=Segitiga 4=L1 5=R1 6=L2 7=R2
+// 8=Share 9=Options 10=L3 11=R3 12-15=D-pad; axes 0/1 stik kiri, 2/3 stik kanan
 export const BTN = { CROSS: 0, CIRCLE: 1, SQUARE: 2, TRIANGLE: 3, L1: 4, R1: 5, L2: 6, R2: 7, SHARE: 8, OPTIONS: 9, L3: 10, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
 const DEADZONE = 0.18;
@@ -44,7 +37,7 @@ class InputManager {
     window.addEventListener('keydown', (e) => {
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
       this.keys.add(e.code);
-      if (!e.repeat) this.downQueue.add(e.code); // tekan singkat tetap terhitung walau < 1 frame
+      if (!e.repeat) this.downQueue.add(e.code); // biar tekan singkat tetap kebaca
       this.lastDevice = 'keyboard';
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
@@ -54,14 +47,14 @@ class InputManager {
     });
     window.addEventListener('mousedown', (e) => {
       if (this._isUiTarget(e) || e.button !== 0) return;
-      // abaikan "mouse palsu" yang dibuat browser setelah tap layar sentuh
+      // abaikan mouse event palsu setelah tap
       if (performance.now() - (this.lastTouch || -9999) < 900) return;
       this.mouseHeld = true;
       this.mouseQueued = true;
       this.lastDevice = 'mouse';
     });
     window.addEventListener('mouseup', () => (this.mouseHeld = false));
-    // Tap singkat di layar sentuh = tembak (geser = putar pandangan via look-controls)
+    // tap = tembak, geser = putar pandangan
     let start = null;
     window.addEventListener('touchstart', (e) => {
       this.lastTouch = performance.now();
@@ -82,7 +75,7 @@ class InputManager {
     }, { passive: true });
   }
 
-  /** Ambil gamepad pertama yang terhubung. */
+  // gamepad pertama yang terhubung
   _readPad() {
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const p of pads) {
@@ -129,7 +122,7 @@ class InputManager {
     return !!this.padButtons[i] && !this.prevPadButtons[i];
   }
 
-  /** Vektor gerak (x = kanan, y = maju) dari stik kiri + WASD/panah. */
+  // vektor gerak (x kanan, y maju)
   moveAxis() {
     let x = 0;
     let y = 0;
@@ -149,7 +142,7 @@ class InputManager {
     return { x, y };
   }
 
-  /** Putar badan: stik kanan X, D-pad kiri/kanan, atau Q/E. Positif = ke kanan. */
+  // putar badan, positif = kanan
   turnAxis() {
     let t = 0;
     if (this.pad) t += dz(this.pad.axes[2] || 0);
@@ -158,7 +151,7 @@ class InputManager {
     return Math.max(-1, Math.min(1, t));
   }
 
-  /** Dongak/tunduk dengan stik kanan Y (untuk main tanpa gyro). */
+  // dongak/tunduk (stik kanan Y)
   pitchAxis() {
     return this.pad ? dz(this.pad.axes[3] || 0) : 0;
   }

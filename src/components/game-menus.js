@@ -1,7 +1,4 @@
-/**
- * game-menus — panel menu 3D (Menu Utama, Jeda, Game Over) yang melayang
- * di depan pemain. Muncul/hilang mengikuti event 'game-state' dari game-manager.
- */
+// game-menus: panel menu utama, jeda, game over.
 import { CanvasPanel, UI_FONT, roundRect } from '../utils/helpers.js';
 
 const THREE = AFRAME.THREE;
@@ -106,7 +103,7 @@ AFRAME.registerComponent('game-menus', {
     return { el, panel, drawFn, h };
   },
 
-  /** Letakkan panel 2.6 m di depan arah pandang pemain, menghadap pemain. */
+  // taruh panel 2.6 m di depan pemain
   place(p) {
     const cam = this.el.sceneEl.camera;
     if (!cam) return;

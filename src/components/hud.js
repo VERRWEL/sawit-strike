@@ -1,9 +1,4 @@
-/**
- * hud — antarmuka 3D yang menempel di kamera (tetap terlihat saat mode VR split-screen):
- * crosshair + indikator fuse, skor, gelombang, bar HP, amunisi, pengumuman tengah,
- * hitmarker, dan vinyet merah saat terkena serangan.
- * Posisi elemen menyesuaikan rasio layar (portrait / landscape / VR per-mata).
- */
+// hud: crosshair, skor, HP, amunisi, dll. Menempel di kamera.
 import { CanvasPanel, UI_FONT, roundRect } from '../utils/helpers.js';
 import { vignetteTexture } from '../utils/textures.js';
 import { input } from '../utils/input.js';
@@ -89,7 +84,7 @@ AFRAME.registerComponent('hud', {
     this.drawAmmo();
   },
 
-  /** Hitung area aman HUD berdasarkan FOV & rasio layar efektif. */
+  // area aman HUD dari FOV & aspect ratio
   layout() {
     const scene = this.el.sceneEl;
     const cam = scene.camera;
@@ -106,7 +101,7 @@ AFRAME.registerComponent('hud', {
       hy = Math.min(hy, 0.38);
       hx = Math.min(hx, 0.42);
     }
-    // skala elemen agar muat di layar sempit (HP portrait)
+    // kecilkan di layar portrait
     const s = THREE.MathUtils.clamp(hx / 0.5, 0.55, 1.15);
     const put = (p, x, y, ax, ay) => {
       const w = p.mesh.geometry.parameters.width * s;

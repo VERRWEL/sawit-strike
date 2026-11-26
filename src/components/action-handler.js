@@ -1,18 +1,5 @@
-/**
- * action-handler — dipasang di entity kamera.
- * Menangani semua aksi tombol (bukan gerakan):
- *   R2/R1, klik mouse, Spasi, tap layar  -> tembak (hitscan dari tengah layar/crosshair)
- *   Kotak / R                           -> isi ulang peluru
- *   X / Enter                           -> pilih tombol menu / mulai
- *   Segitiga / P                        -> jeda
- *   Options / V                         -> mode VR cardboard (layar terbelah)
- *   Share / M                           -> bisukan suara
- *   D-pad atas / C                      -> hadapkan ulang (recenter)
- * Tombol O (Circle) sengaja TIDAK dipakai: di Android itu = tombol Back.
- *
- * Bidikan memakai THREE.Raycaster dari posisi & arah kamera, sehingga di HP
- * pemain cukup menoleh (gyroscope) untuk membidik.
- */
+// action-handler: tembak, reload, menu, jeda, mode VR, mute, recenter.
+// Tombol O sengaja tidak dipakai (di Android = Back).
 import { input } from '../utils/input.js';
 import { isShown } from '../utils/helpers.js';
 import { flashTexture } from '../utils/textures.js';
@@ -36,7 +23,7 @@ function buildGun() {
   add(new THREE.BoxGeometry(0.065, 0.07, 0.22), metal, 0, 0.01, -0.1); // receiver
   add(new THREE.CylinderGeometry(0.014, 0.016, 0.42, 8), metal, 0, 0.02, -0.4, Math.PI / 2); // laras
   add(new THREE.CylinderGeometry(0.022, 0.022, 0.16, 10), metal, 0, 0.075, -0.08, Math.PI / 2); // teleskop
-  add(new THREE.BoxGeometry(0.07, 0.03, 0.18), green, 0, -0.03, -0.26); // pelindung laras hijau (khas "penjaga kebun")
+  add(new THREE.BoxGeometry(0.07, 0.03, 0.18), green, 0, -0.03, -0.26); // pelindung laras
   add(new THREE.CylinderGeometry(0.03, 0.03, 0.12, 8), new THREE.MeshLambertMaterial({ color: '#c9a227' }), 0, -0.06, -0.17, Math.PI / 2); // tabung angin
   g.traverse((m) => {
     if (m.material) {
@@ -88,7 +75,7 @@ AFRAME.registerComponent('action-handler', {
     this.flash.visible = false;
     this.muzzleObj.add(this.flash);
 
-    // jeda fuse sesaat setelah panel muncul agar tombol tidak terpilih tanpa sengaja
+    // jeda fuse biar tombol tidak langsung terpilih
     scene.addEventListener('game-state', () => (this.fuse = -1));
     scene.addEventListener('game-start', () => {
       this.ammo = this.data.mag;
@@ -109,7 +96,7 @@ AFRAME.registerComponent('action-handler', {
     this.emitWeapon();
   },
 
-  /** Kumpulkan semua objek yang bisa dibidik: hama, TBS, tombol menu. */
+  // target raycast: hama, TBS, tombol menu
   collectTargets() {
     const list = [];
     this.gm.enemies.forEach((e) => !e.dead && list.push(e.hitbox));
@@ -169,13 +156,13 @@ AFRAME.registerComponent('action-handler', {
     const gm = this.gm;
     if (!scene.camera) return;
 
-    // --- tombol sistem ---
+    // tombol sistem
     if (input.stereoPressed()) scene.systems['stereo-mode'].toggle();
     if (input.mutePressed() && this.audio) this.audio.toggleMute();
     if (input.pausePressed()) gm.togglePause();
     if (input.recenterPressed()) scene.emit('recenter');
 
-    // --- bidik ---
+    // bidik
     const hit = this.aim();
     const btn = hit && hit.object.userData.button ? hit.object.userData.button : null;
     if (btn !== this.hovered) {
@@ -187,7 +174,7 @@ AFRAME.registerComponent('action-handler', {
       this.hovered = btn;
       this.fuse = Math.min(this.fuse, 0);
     }
-    // gaze/fuse: tatap tombol selama fuseTime -> otomatis diklik (untuk cardboard tanpa controller)
+    // gaze/fuse untuk cardboard
     if (btn) {
       this.fuse += dt;
       if (this.fuse >= this.data.fuseTime) {
@@ -198,28 +185,28 @@ AFRAME.registerComponent('action-handler', {
     const onEnemy = !!(hit && hit.object.userData.enemy);
     scene.emit('aim-update', { onEnemy, onPickup: !!(hit && hit.object.userData.pickup), fuse: btn ? Math.max(0, this.fuse) / this.data.fuseTime : 0 });
 
-    // --- konfirmasi (X / Enter) ---
+    // konfirmasi (X / Enter)
     if (input.confirmPressed()) {
       if (btn) btn.click();
       else if (gm.state === 'menu' || gm.state === 'gameover') gm.startGame();
       else if (gm.state === 'paused') gm.togglePause();
     }
 
-    // --- tembak ---
+    // tembak
     this.cooldown -= dt;
     const canShoot = gm.state === 'playing' || gm.state === 'intermission' || gm.state === 'menu';
     if (btn && input.firePressed()) {
       btn.click();
     } else if (canShoot && !btn) {
       const stereo = scene.systems['stereo-mode'].enabled;
-      // mode cardboard tanpa gamepad: tembak otomatis saat crosshair di atas hama
+      // cardboard tanpa gamepad: auto-tembak
       const autoFire = stereo && !input.gamepadConnected && onEnemy && gm.isRunning();
       const wantFire = input.fireHeld() || input.firePressed() || autoFire;
       if (wantFire && this.cooldown <= 0) this.fire(hit);
       if (input.reloadPressed()) this.startReload();
     }
 
-    // --- reload ---
+    // reload
     if (this.reloading > 0) {
       this.reloading -= dt;
       if (this.reloading <= 0) {
@@ -229,7 +216,7 @@ AFRAME.registerComponent('action-handler', {
       }
     }
 
-    // --- animasi senjata: recoil, ayunan reload, kilatan moncong ---
+    // animasi senjata
     this.recoil = Math.max(0, this.recoil - dt * 9);
     const r = this.reloading > 0 ? Math.sin((1 - this.reloading / this.data.reloadTime) * Math.PI) : 0;
     this.gun.position.set(this.gunRest.x, this.gunRest.y - r * 0.15, this.gunRest.z + this.recoil * 0.06);

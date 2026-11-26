@@ -1,14 +1,5 @@
-/**
- * stereo-mode — mode VR "Cardboard" untuk HP (layar terbelah kiri/kanan).
- *
- * Mengapa perlu dibuat sendiri? Sejak A-Frame 1.5, polyfill WebVR dihapus dan
- * Chrome Android tidak lagi menyediakan sesi WebXR 'immersive-vr' untuk Cardboard,
- * sehingga tombol VR bawaan tidak bisa membelah layar di kebanyakan HP.
- * Sistem ini membungkus renderer.render() dan menggambar scene dua kali memakai
- * THREE.StereoCamera (jarak antar-mata 64 mm). Head-tracking tetap dari gyroscope
- * (look-controls magic window). Jika perangkat mendukung WebXR asli (mis. Meta Quest),
- * gunakan tombol "VR Headset" yang memanggil sceneEl.enterVR().
- */
+// stereo-mode: split-screen Cardboard manual pakai THREE.StereoCamera.
+// A-Frame >= 1.5 sudah tidak punya polyfill WebVR, jadi Cardboard di HP harus begini.
 const THREE = AFRAME.THREE;
 
 AFRAME.registerSystem('stereo-mode', {
@@ -59,7 +50,7 @@ AFRAME.registerSystem('stereo-mode', {
         p.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {})).catch(() => {});
       }
     } catch (e) {
-      /* fullscreen bisa ditolak jika bukan dari gesture pengguna */
+      /* bisa ditolak tanpa gesture user */
     }
     document.body.classList.add('stereo');
     this.el.emit('stereo-changed', { enabled: true });

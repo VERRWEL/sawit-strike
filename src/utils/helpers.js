@@ -1,10 +1,7 @@
-/**
- * Helper umum: random ber-seed, merge geometry, dan panel teks berbasis canvas.
- * Semua dibuat sendiri (tanpa library tambahan) agar ringan untuk browser HP.
- */
+// helper umum
 const THREE = AFRAME.THREE;
 
-/** Random ber-seed (mulberry32) supaya layout kebun selalu sama setiap dibuka. */
+// random ber-seed (mulberry32)
 export function seededRandom(seed) {
   let a = seed >>> 0;
   return function () {
@@ -15,10 +12,7 @@ export function seededRandom(seed) {
   };
 }
 
-/**
- * Gabungkan beberapa BufferGeometry menjadi satu (non-indexed) supaya
- * satu model = satu draw call. Atribut: position, normal, color, uv.
- */
+// gabung beberapa BufferGeometry jadi satu (non-indexed)
 export function mergeGeometries(geoms) {
   const parts = geoms.map((g) => (g.index ? g.toNonIndexed() : g));
   let count = 0;
@@ -47,7 +41,7 @@ export function mergeGeometries(geoms) {
   return out;
 }
 
-/** Beri warna vertex seragam pada geometry (untuk material vertexColors). */
+// warna vertex seragam
 export function paint(geom, hex, jitter = 0, rng = Math.random) {
   const g = geom.index ? geom.toNonIndexed() : geom;
   const c = new THREE.Color(hex);
@@ -67,10 +61,7 @@ export function paint(geom, hex, jitter = 0, rng = Math.random) {
 
 export const UI_FONT = "'Trebuchet MS', 'Segoe UI', Roboto, Arial, sans-serif";
 
-/**
- * Panel teks 3D yang digambar di <canvas>. Dipakai untuk HUD & menu,
- * menggantikan <a-text> agar tidak bergantung pada font dari CDN.
- */
+// panel teks dari canvas, pengganti <a-text>
 export class CanvasPanel {
   constructor(widthM, heightM, pxPerM = 512, opts = {}) {
     this.canvas = document.createElement('canvas');
@@ -93,7 +84,7 @@ export class CanvasPanel {
     this._last = null;
   }
 
-  /** Gambar ulang hanya jika key berubah (hemat CPU). */
+  // redraw hanya kalau key berubah
   draw(key, fn) {
     if (key !== undefined && key === this._last) return;
     this._last = key;
@@ -104,7 +95,7 @@ export class CanvasPanel {
   }
 }
 
-/** Kotak bersudut bulat untuk canvas 2D. */
+// rounded rect
 export function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -115,7 +106,7 @@ export function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-/** Cek apakah object3D benar-benar terlihat (semua parent visible). */
+// true kalau object3D & semua parent visible
 export function isShown(obj) {
   while (obj) {
     if (!obj.visible) return false;

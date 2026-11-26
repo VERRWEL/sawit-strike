@@ -1,8 +1,4 @@
-/**
- * ui-button — tombol 3D di dalam dunia VR (karena overlay HTML hilang saat mode VR).
- * Bisa dipilih dengan: membidik + tembak/klik/tap, tombol X, atau menatapnya (fuse).
- * Mengeluarkan event 'click' pada entity.
- */
+// ui-button: tombol 3D di dalam VR, emit 'click'.
 import { CanvasPanel, UI_FONT, roundRect } from '../utils/helpers.js';
 
 AFRAME.registerComponent('ui-button', {

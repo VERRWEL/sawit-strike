@@ -1,5 +1,4 @@
-// Urutan import penting: A-Frame dulu, lalu semua System & Component
-// harus terdaftar SEBELUM <a-scene> dirender oleh React.
+// A-Frame & komponen harus ter-register sebelum <a-scene> dirender
 import 'aframe';
 
 import './systems/game-manager.js';
@@ -20,5 +19,5 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './styles.css';
 
-// Tanpa <StrictMode>: StrictMode me-mount komponen dua kali sehingga <a-scene> akan dibuat ganda.
+// tanpa StrictMode, biar <a-scene> tidak dibuat dua kali
 createRoot(document.getElementById('root')).render(<App />);

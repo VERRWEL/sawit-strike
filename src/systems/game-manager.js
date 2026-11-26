@@ -1,10 +1,4 @@
-/**
- * game-manager — state global permainan (pola ECS: System).
- * Menyimpan skor, HP, gelombang (wave), daftar hama & item, serta
- * mengatur perpindahan state: menu -> playing <-> intermission -> gameover.
- * Komponen lain cukup memanggil method di sini (decoupled), dan HUD/menu
- * mendengarkan event 'game-update' / 'game-state'.
- */
+// game-manager: state global (skor, HP, wave, daftar hama).
 const THREE = AFRAME.THREE;
 
 export const ENEMY_TYPES = {
@@ -82,7 +76,7 @@ AFRAME.registerSystem('game-manager', {
     });
   },
 
-  /* ---------- Alur permainan ---------- */
+  // alur game
 
   startGame() {
     this.clearField();
@@ -106,7 +100,7 @@ AFRAME.registerSystem('game-manager', {
       if (w >= 3 && r > 1 - Math.min(0.12 + w * 0.025, 0.3)) type = 'babi';
       queue.push(type);
     }
-    // pastikan ada "bos" babi hutan setiap kelipatan 3
+    // tiap wave kelipatan 3 ada babi bos
     if (w % 3 === 0) queue.push('babi', 'babi');
     this.queue = queue;
     this.spawnInterval = Math.max(0.45, 1.8 - w * 0.13);
@@ -159,7 +153,7 @@ AFRAME.registerSystem('game-manager', {
     this.pickups.clear();
   },
 
-  /* ---------- Registrasi entitas ---------- */
+  // registrasi entitas
 
   registerEnemy(c) {
     this.pending = Math.max(0, (this.pending || 0) - 1);
@@ -181,7 +175,7 @@ AFRAME.registerSystem('game-manager', {
     this.buttons.delete(c);
   },
 
-  /* ---------- Event gameplay ---------- */
+  // event gameplay
 
   enemyKilled(enemy) {
     const info = ENEMY_TYPES[enemy.data.type];
@@ -190,7 +184,7 @@ AFRAME.registerSystem('game-manager', {
     this.kills += 1;
     const pos = enemy.el.object3D.position;
     this.fx.popup(this._tmp.copy(pos).setY(pos.y + 1.2), `+${pts}`);
-    // peluang menjatuhkan Tandan Buah Segar (TBS) = pemulih HP
+    // peluang drop TBS
     const chance = enemy.data.type === 'babi' ? 1 : enemy.data.type === 'kumbang' ? 0.22 : 0.15;
     if (Math.random() < chance) this.spawnPickup(pos);
     this.emitUpdate();
@@ -226,7 +220,7 @@ AFRAME.registerSystem('game-manager', {
   spawnEnemy(type) {
     if (!this.rig || !this.container) return;
     const p = this.rig.object3D.position;
-    // muncul di antara barisan sawit, 20–30 m dari pemain, di luar pandangan langsung
+    // spawn 20-30 m dari pemain
     let x = 0;
     let z = 0;
     for (let tries = 0; tries < 8; tries++) {
@@ -237,7 +231,7 @@ AFRAME.registerSystem('game-manager', {
       if (Math.hypot(x - p.x, z - p.z) > 15) break;
     }
     const el = document.createElement('a-entity');
-    this.pending = (this.pending || 0) + 1; // entity baru di-init pada frame berikutnya
+    this.pending = (this.pending || 0) + 1; // init di frame berikutnya
     el.setAttribute('enemy', { type, speedMul: this.speedMul });
     el.setAttribute('position', `${x} 0 ${z}`);
     this.container.appendChild(el);
@@ -255,7 +249,7 @@ AFRAME.registerSystem('game-manager', {
         this.emitUpdate();
       }
       if (!this.queue.length && this.enemies.size === 0 && !this.pending) {
-        // gelombang selesai: bonus + jeda singkat
+        // wave selesai
         const bonus = 250 * this.wave;
         this.score += bonus;
         this.heal(15);
